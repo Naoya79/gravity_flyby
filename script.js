@@ -80,15 +80,31 @@ class Ship {
             ctx.stroke();
         }
 
-        // Draw Ship
+        // Draw Ship (Spaceship shape)
+        ctx.save();
+        ctx.translate(this.pos.x, this.pos.y);
+
+        // Rotate towards direction of movement
+        let angle = 0;
+        if (this.vel.mag() > 0.1) {
+            angle = Math.atan2(this.vel.y, this.vel.x);
+        }
+        ctx.rotate(angle);
+
         ctx.beginPath();
-        ctx.arc(this.pos.x, this.pos.y, this.radius, 0, Math.PI * 2);
+        const r = this.radius;
+        // Triangle pointing right (0 rad)
+        ctx.moveTo(r + 2, 0);
+        ctx.lineTo(-r, r - 2);
+        ctx.lineTo(-r + 3, 0); // Engine notch
+        ctx.lineTo(-r, -r + 2);
+        ctx.closePath();
+
         ctx.fillStyle = this.color;
-        ctx.fill();
         ctx.shadowBlur = 10;
         ctx.shadowColor = 'white';
         ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.restore();
     }
 }
 
@@ -296,7 +312,8 @@ class Game {
     update(dt) {
         this.frameCount++;
         if (this.state === GAME_STATE.FLYING) {
-            this.ship.update(dt * 60, this.planets); // Scale dt to be frame-relative approx
+            // Slow motion for better observation (20 instead of 60)
+            this.ship.update(dt * 20, this.planets);
 
             // Collision Detection
             this.checkCollisions();
