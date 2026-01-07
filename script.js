@@ -184,17 +184,16 @@ class Game {
         this.uiStage = document.getElementById('stage-number');
         this.uiMessages = document.getElementById('messages');
         this.retryBtn = document.getElementById('retry-btn');
+        this.shuffleBtn = document.getElementById('shuffle-btn');
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
         this.currentLevel = 1;
-        this.retryBtn.addEventListener('click', () => {
-            // Logic handled inside gameWin for Next Level, otherwise here is reset
-            if (this.state !== GAME_STATE.ENDED || this.uiMessages.innerText !== "COURSE CLEAR!") {
-                this.initLevel(this.currentLevel);
-            }
-        });
+        this.currentLevelConfig = null; // Store current config
+
+        this.retryBtn.onclick = () => this.restartLevel();
+        this.shuffleBtn.onclick = () => this.shuffleLevel();
 
         // Input Handling
         this.isDragging = false;
@@ -239,7 +238,7 @@ class Game {
             })
         };
 
-        this.initLevel(this.currentLevel);
+        this.initLevel(1);
 
         this.lastTime = 0;
         this.frameCount = 0;
@@ -254,39 +253,75 @@ class Game {
         this.canvas.height = window.innerHeight;
     }
 
-    // Coordinate conversion
     getMousePos(e) {
         const rect = this.canvas.getBoundingClientRect();
         return new Vector2(e.clientX - rect.left, e.clientY - rect.top);
     }
 
-    initLevel(levelNum) {
-        if (!this.levels[levelNum]) {
-            levelNum = 1; // Loop back or finish
-            this.currentLevel = 1;
+    generateRandomLevel(w, h) {
+        const planetCount = Math.floor(Math.random() * 3) + 1; // 1 to 3 planets
+        const planets = [];
+
+        for (let i = 0; i < planetCount; i++) {
+            const r = 20 + Math.random() * 40;
+            const x = 200 + Math.random() * (w - 400);
+            const y = 100 + Math.random() * (h - 200);
+            const gravity = r * 100;
+            const influence = r * 6;
+            planets.push(new Planet(x, y, r, gravity, influence));
         }
 
-        const config = this.levels[levelNum](this.canvas.width, this.canvas.height);
+        return {
+            ship: new Vector2(100, h / 2 + (Math.random() * 200 - 100)),
+            goal: { pos: new Vector2(w - 100, h / 2 + (Math.random() * 200 - 100)), r: 30 },
+            planets: planets
+        };
+    }
+
+    initLevel(levelNum) {
+        this.currentLevel = levelNum;
+
+        if (this.levels[levelNum]) {
+            this.currentLevelConfig = this.levels[levelNum](this.canvas.width, this.canvas.height);
+            this.shuffleBtn.classList.add('hidden');
+        } else {
+            this.currentLevelConfig = this.generateRandomLevel(this.canvas.width, this.canvas.height);
+            this.shuffleBtn.classList.remove('hidden');
+            this.shuffleBtn.style.display = 'block';
+        }
+
+        this.startFromConfig();
+    }
+
+    shuffleLevel() {
+        this.initLevel(this.currentLevel);
+    }
+
+    restartLevel() {
+        this.startFromConfig();
+    }
+
+    startFromConfig() {
+        const config = this.currentLevelConfig;
 
         this.state = GAME_STATE.IDLE;
         this.uiMessages.classList.add('hidden');
-        this.uiStage.innerText = levelNum;
+        this.uiStage.innerText = this.currentLevel >= 4 ? `${this.currentLevel} (Random)` : this.currentLevel;
         this.retryBtn.innerText = "RETRY";
-
-        // Reset button listener behavior
-        this.retryBtn.onclick = () => {
-            this.initLevel(this.currentLevel);
-        };
+        this.retryBtn.onclick = () => this.restartLevel();
 
         this.ship = new Ship(config.ship.x, config.ship.y);
         this.planets = config.planets;
         this.goal = new Goal(config.goal.pos.x, config.goal.pos.y, config.goal.r);
+
+        this.ship.vel = new Vector2(0, 0);
+        this.ship.acc = new Vector2(0, 0);
+        this.ship.trail = [];
     }
 
     onMouseDown(e) {
         if (this.state !== GAME_STATE.IDLE) return;
         const pos = this.getMousePos(e);
-        // Drag anywhere behavior
         this.isDragging = true;
         this.dragStart = pos;
         this.dragCurrent = pos;
@@ -352,6 +387,8 @@ class Game {
             this.currentLevel++;
             this.initLevel(this.currentLevel);
         };
+        // Also hide shuffle btn on win screen? No, keep it if they want to re-roll next level immediately?
+        // Actually next level is not generated yet.
     }
 
     gameLoss(msg) {

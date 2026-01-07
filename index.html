@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,15 +10,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
         <div id="ui-layer">
             <div id="stage-info">Stage <span id="stage-number">1</span></div>
             <div id="messages" class="hidden"></div>
-            <button id="retry-btn">RETRY</button>
+            <div id="btn-container">
+                <button id="shuffle-btn" class="hidden">SHUFFLE</button>
+                <button id="retry-btn">RETRY</button>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>

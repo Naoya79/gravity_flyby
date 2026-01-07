@@ -40,7 +40,8 @@ canvas {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Let clicks pass through to canvas */
+    pointer-events: none;
+    /* Let clicks pass through to canvas */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -53,9 +54,15 @@ canvas {
     text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
 }
 
-#retry-btn {
-    pointer-events: auto;
+#btn-container {
     align-self: flex-end;
+    display: flex;
+    gap: 10px;
+}
+
+#retry-btn,
+#shuffle-btn {
+    pointer-events: auto;
     background-color: transparent;
     border: 2px solid var(--accent-color);
     color: var(--accent-color);
@@ -73,6 +80,18 @@ canvas {
     background-color: var(--accent-color);
     color: var(--bg-color);
     box-shadow: 0 0 15px var(--accent-color);
+}
+
+#shuffle-btn {
+    border-color: #fca311;
+    /* Orange warning/change color */
+    color: #fca311;
+}
+
+#shuffle-btn:hover {
+    background-color: #fca311;
+    color: var(--bg-color);
+    box-shadow: 0 0 15px #fca311;
 }
 
 #messages {
